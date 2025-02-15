@@ -1,11 +1,8 @@
-import React from 'react'
+import React from "react";
 
-const page = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+import { redirect } from "next/navigation";
+
+export default function Home() {
+  redirect("/dashboard");
+  return <>Coming Soon</>;
 }
-
-export default page
