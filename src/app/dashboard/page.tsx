@@ -1,48 +1,99 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
-import initials from "initials";
-import { DollarSign, Users, CreditCard, Activity } from "lucide-react";
+// import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
+// import initials from "initials";
+// import { DollarSign, Users, CreditCard, Activity } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+// import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-import { DateRangePicker } from "@/components/date-range-picker";
+// import { DateRangePicker } from "@/components/date-range-picker";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { salesData, overviewChartData } from "@/constants/dummy-data";
+// import { salesData, overviewChartData } from "@/constants/dummy-data";
+
+import useProject from "@/hooks/useProject"
+
+const projects = [
+  {
+    id: 0,
+    name: "Highway Project",
+    location: "gurugram, Noida",
+  },
+  {
+    id: 1,
+    name: "Another Project",
+    location: "Some other place",
+  },
+];
 
 export default function Page() {
   const [selectedRange, setSelectedRange] = React.useState<DateRange | undefined>(undefined);
+  const [projectsData, setProjectsData] = useState([])
+  const router = useRouter();
+
+  const { getAllProjects } = useProject();
+
+  const handleProjectNavigation = (projectID) => {
+    router.push(`project/${projectID}`);
+  };
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const data = await getAllProjects();
+      if (data) {
+        setProjectsData(data);
+      }
+    };
+
+    fetchProjects();
+  }, [getAllProjects]);
+  
+
   return (
     <div className="flex-col md:flex">
       <div className="flex-1 space-y-4">
         <div className="flex-col items-center justify-between space-y-2 md:flex md:flex-row">
-          <h2 className="text-3xl font-bold tracking-tight">Project Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Projects Dashboard</h2>
           <div className="flex-col items-center space-y-2 md:flex md:flex-row md:space-x-2 md:space-y-0">
-            <DateRangePicker selectedRange={selectedRange} onChangeRange={setSelectedRange} />
+            {/* <DateRangePicker selectedRange={selectedRange} onChangeRange={setSelectedRange} /> */}
             <Button className="w-full">Download</Button>
           </div>
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" >
-              Anomalies
-            </TabsTrigger>
-            <TabsTrigger value="reports" >
-              Reports
-            </TabsTrigger>
+            <TabsTrigger value="analytics">Anomalies</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
+            <h1 className="text-2xl font-bold">Projects</h1>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* project cards */}
-                
-              
+              {/* project cards */}
+              {projects.map((item) => {
+                return (
+                  <Card
+                    key={item.id}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleProjectNavigation(item.id);
+                    }}
+                  >
+                    <CardHeader>
+                      <CardTitle>{item.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="gap-4 flex flex-col">
+                      <p className="text-sm">Location: {item.location ?? "Rehan do this"}</p>
+                      <CardDescription>{item.description ?? "why"}</CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-2 lg:col-span-4">
                 <CardHeader>
                   <CardTitle>Overview</CardTitle>
@@ -85,9 +136,13 @@ export default function Page() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
           </TabsContent>
         </Tabs>
+        <div className="w-96 h-max">
+          <video src="http://192.168.3.31:8000/output.m3u8"></video>
+        </div>
+        
       </div>
     </div>
   );

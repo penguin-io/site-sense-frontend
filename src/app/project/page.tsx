@@ -1,9 +1,9 @@
 // app/page.tsx
 import dynamic from "next/dynamic";
-import ProjectDetails from "../components/ProjectDetails";
-import WorksiteList from "../components/WorkSiteList";
+import ProjectDetails from "./components/ProjectDetails";
+import WorksiteList from "./components/WorkSiteList";
 
-const WorksiteMap = dynamic(() => import("../components/WorkSiteMap"), { ssr: false });
+const WorksiteMap = dynamic(() => import("./components/WorkSiteMap"), { ssr: false });
 
 const projectData = {
   name: "City Center Redevelopment",
@@ -21,7 +21,7 @@ const worksitesData = [
   { id: "WS005", status: "inactive", name: "Tech District", numberOfZones: 3, managerName: "Charlie Davis", lat: 40.7411, lng: -74.0018 },
 ];
 
-export default function Page() {
+export default function ConstructionProjectPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Construction Project Overview</h1>

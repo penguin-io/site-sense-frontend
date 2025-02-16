@@ -8,35 +8,37 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>, email: string, password: string) => {
     e.preventDefault();
 
-    const formData = new FormData()
-    formData.append("username",email)
-    formData.append("password",password)
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/auth/jwt/login`, {
-      method: "POST",
-      body: formData
-    });
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
 
-    if (response.ok) {
-      // Handle successful login
-      const data = await response.json();
-      console.log("Login successful!", data);
-      // Store the access token (example: in localStorage)
-      localStorage.setItem('access_token', data.access_token);
-      router.push("/dashboard"); // Redirect to dashboard or home page after login
-    } else {
-      // Handle error
-      const errorData = await response.json();
-      console.error("Login failed:", errorData);
-      // Display error message to the user (you'll need to add UI for this)
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/auth/jwt/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData.toString(),
+      });
+
+      if (response.status===200) {
+        const data = await response.json();
+        console.log("Login successful!", data);
+        localStorage.setItem('access_token', data.access_token);
+        router.push("/dashboard");
+      } else {
+        const errorData = await response.json();
+        console.error("Login failed:", errorData);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
     }
   };
-
   return (
-    <form onSubmit={handleLogin} className="flex flex-col space-y-4">
+    <form onSubmit={(e)=>handleLogin(e, email,password)} className="flex flex-col space-y-4">
       <input
         type="email"
         placeholder="Email"
