@@ -19,6 +19,7 @@ const useUser = () => {
                     hasProjectAccess: user.role === "padmin" ? true : false
                 }));
                 console.log("All users", formattedData);
+                
                 return formattedData;
             } else {
                 const errorData = await res.json();
@@ -47,17 +48,16 @@ const useUser = () => {
         return null;
     };
 
-    const getUserInfo = async ({userID}): Promise<{ name: string; email: string; avatar: string } | null> => {
+    const getUserInfo = async (userID:string) => {
+        console.log("hi")
         try {
-            const res = await fetchAuth(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/users/${userID}`,
-                {body : JSON.stringify({
-                    id: userID
-                })}
-            );
-            if (res.status === 200) {
+            const res = await fetchAuth(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/users/${userID}`);
+            if (res) {
                 const data = await res.json();
-                console.log("My user data", data);
-                return data;
+                if(data){
+                    console.log("My user data", data);
+                    return data;    
+                }
             } else {
                 const errorData = await res.json();
                 console.error("Get user data failed", errorData);

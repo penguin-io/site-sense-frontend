@@ -36,40 +36,40 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 2,
-    label: "Apps & Pages",
+    label: "Features & Pages",
     items: [
       {
-        title: "Inbox",
-        path: `${basePath}/inbox`,
+        title: "Projects",
+        path: `${basePath}/projects`,
         icon: Inbox,
       },
       {
-        title: "Invoice",
+        title: "Anomaly",
         path: "#",
         icon: Receipt,
         subItems: [
           { title: "List", path: `${basePath}/invoice/list-preview` },
           { title: "View", path: `${basePath}/invoice/view` },
           { title: "Add", path: `${basePath}/invoice/add` },
-          { title: "Edit", path: `${basePath}/invoice/edit` },
+          { title: "Edit", path: `${basePath}/invoice/edit`},
         ],
       },
+      // {
+      //   title: "Auth",
+      //   path: "#",
+      //   icon: KeySquare,
+      //   subItems: [{ title: "Unauthorized", path: `${basePath}/auth/unauthorized` }],
+      // },
       {
-        title: "Auth",
-        path: "#",
-        icon: KeySquare,
-        subItems: [{ title: "Unauthorized", path: `${basePath}/auth/unauthorized` }],
-      },
-      {
-        title: "Drafts",
-        path: `${basePath}/drafts`,
+        title: "Worksites",
+        path: `${basePath}/worksites`,
         icon: File,
       },
-      {
-        title: "Sent",
-        path: `${basePath}/sent`,
-        icon: Send,
-      },
+      // {
+      //   title: "Sent",
+      //   path: `${basePath}/sent`,
+      //   icon: Send,
+      // },
     ],
   },
   {

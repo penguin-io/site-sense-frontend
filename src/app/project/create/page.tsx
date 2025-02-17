@@ -8,6 +8,7 @@ const CreateProjectPage = () => {
   const router = useRouter();
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [projectLocation, setProjectLocation] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const { createProject } = useProject();
@@ -21,6 +22,7 @@ const CreateProjectPage = () => {
     const projectData = {
       name: projectName,
       description: projectDescription,
+      location : projectLocation
     };
 
     try {
@@ -62,6 +64,17 @@ const CreateProjectPage = () => {
           placeholder="Enter project description"
           rows={4}
         ></textarea>
+      </div>
+
+      <div className="mb-4">
+        <label className="block mb-2 text-sm font-medium text-gray-700">Location</label>
+        <input
+          value={projectLocation}
+          onChange={(e) => setProjectLocation(e.target.value)}
+          className="w-full border border-gray-300 p-2 rounded-md"
+          placeholder="Enter project description"
+          rows={4}
+        ></input>
       </div>
 
       <button

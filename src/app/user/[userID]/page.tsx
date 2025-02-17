@@ -6,10 +6,9 @@ import useUser from '@/hooks/useUser';
 import useAdmin from '@/hooks/useAdmin';
 
 const UserPermissionsPage = () => {
-    const params = useParams();
-    const userID = params?.userID;
-    const { getUserInfo} = useUser();
-    const {setUserAccess, setUserRole } = useAdmin();
+    const { userID } = useParams();
+    const { getUserInfo } = useUser();
+    const { setUserAccess, setUserRole } = useAdmin();
     const [user, setUser] = useState<any>(null);
     const [selectedRole, setSelectedRole] = useState('');
     const [resourceId, setResourceId] = useState('');
@@ -18,10 +17,8 @@ const UserPermissionsPage = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
-            if (userID) {
-                const userInfo = await getUserInfo({ userID });
-                setUser(userInfo);
-            }
+            const userInfo = await getUserInfo(userID);
+            setUser(userInfo);
         };
         fetchUser();
     }, [userID, getUserInfo]);
@@ -40,17 +37,16 @@ const UserPermissionsPage = () => {
         }
     };
 
-    if (!user) return <div>Loading user information...</div>;
 
     return (
         <div className="p-6 bg-white rounded-lg shadow">
-            <h1 className="text-2xl font-bold mb-4">User Permissions for {user.name}</h1>
+            <h1 className="text-2xl font-bold mb-4">User Permissions for {user?.name ?? "name" }</h1>
             <div className="mb-6">
                 <h2 className="text-xl font-semibold">Current Details:</h2>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Role:</strong> {user.role}</p>
-                <p><strong>Worksite Access:</strong> {user.hasWorksiteAccess ? 'Yes' : 'No'}</p>
-                <p><strong>Project Access:</strong> {user.hasProjectAccess ? 'Yes' : 'No'}</p>
+                <p><strong>Email:</strong> {user?.email ?? "email" }</p>
+                <p><strong>Role:</strong> {user?.role ?? "role" }</p>
+                <p><strong>Worksite Access:</strong> {user?.hasWorksiteAccess ?? "hasWorksiteAccess"  ? 'Yes' : 'No'}</p>
+                <p><strong>Project Access:</strong> {user?.hasProjectAccess ?? "hasProjectAccess"  ? 'Yes' : 'No'}</p>
             </div>
 
             <div className="mb-4">
@@ -111,29 +107,3 @@ const UserPermissionsPage = () => {
 };
 
 export default UserPermissionsPage;
-
-// useAdmin.ts
-export const setUserAccess = async (userId: string, resourceIds: string[], resourceType: 'project' | 'worksite', access: 'allow' | 'deny') => {
-    try {
-        const res = await fetchAuth(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/set-access`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: userId,
-                resource_ids: resourceIds,
-                resource_type: resourceType,
-                access: access,
-            }),
-        });
-
-        if (!res.ok) {
-            const error = await res.json();
-            throw new Error(error.detail || 'Failed to set user access');
-        }
-
-        return await res.json();
-    } catch (error) {
-        console.error('Failed to set user access:', error);
-        throw error;
-    }
-};

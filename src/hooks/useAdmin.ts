@@ -2,6 +2,24 @@ import fetchAuth from "@/services/fetchAuth";
 
 const useAdmin = () => {
 
+    const getProjects = async () => {
+        console.log("Hi from getProjects in useAdmin")
+        try {
+            const res = await fetchAuth(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/projects/all`)
+            if(res){
+                const result = res.json();
+                console.log("Getting all projects", result)
+                return result
+            }
+            else {
+                const errorData = await res?.json();
+                console.error("Failed to update user role", errorData);
+            }
+        } catch (error) {
+            console.error("Failed to update user role internally", error);
+        }
+    }
+
     const setUserRole = async (userId: string, role: string) => {
         try {
             const res = await fetchAuth(`${process.env.NEXT_PUBLIC_FASTAPI_BACKEND_URL}/set-role`, {
@@ -20,6 +38,7 @@ const useAdmin = () => {
                 const errorData = await res.json();
                 console.error("Failed to update user role", errorData);
             }
+            return res
         } catch (error) {
             console.error("Failed to update user role internally", error);
         }
@@ -50,11 +69,10 @@ const useAdmin = () => {
         }
     };
 
-
-
     return {
         setUserRole,
-        setUserAccess
+        setUserAccess,
+        getProjects
     }
 }
 

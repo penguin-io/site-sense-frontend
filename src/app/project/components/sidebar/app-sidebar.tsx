@@ -11,6 +11,7 @@ import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import SidebarFooterMenu from "./sidebar-footer-menu";
 import SidebarNavigation from "./sidebar-navigation";
 import SidebarProjects from "./sidebar-projects";
+import SidebarProfile from "@/components/sidebar/SidebarProfile";
 
 const user = {
   name: "shadcn",
@@ -62,11 +63,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarNavigation sidebarItems={sidebarItems} />
-        <SidebarProjects projects={projects} />
+        {/* <SidebarProjects projects={projects} /> */}
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarFooterMenu user={user} />
-      </SidebarFooter>
+      <SidebarProfile />
       <SidebarRail />
     </Sidebar>
   );

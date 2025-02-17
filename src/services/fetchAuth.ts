@@ -10,7 +10,7 @@ const fetchAuth = async (url: string, options: RequestInit = {}) => {
         'accept': 'application/json'
     };
 
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, { ...options, headers, credentials: 'include', });
     return response;
 };
 

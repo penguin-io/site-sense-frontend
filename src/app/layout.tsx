@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+<html lang="en">
       <ToastProvider>
-        <body className={`${inter.className} min-h-screen`}>
+        <body className={inter.className }>
           <Providers> {children} </Providers>
           <Toaster />
         </body>

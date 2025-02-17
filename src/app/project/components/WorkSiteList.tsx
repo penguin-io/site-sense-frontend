@@ -23,7 +23,7 @@ const columns: ColumnDef<Worksite>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) =>
-      row.getValue("status") === "active" ? (
+      row.getValue("status") === true ? (
         <CircleCheck className="text-green-500" />
       ) : (
         <CircleSlash className="text-red-500" />
@@ -40,10 +40,6 @@ const columns: ColumnDef<Worksite>[] = [
   {
     accessorKey: "numberOfZones",
     header: "# of Zones",
-  },
-  {
-    accessorKey: "managerName",
-    header: "Manager Name",
   },
   {
     id: "actions",

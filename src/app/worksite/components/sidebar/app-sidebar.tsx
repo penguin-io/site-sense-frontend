@@ -8,9 +8,7 @@ import { TeamSwitcher } from "@/app/dashboard/components/sidebar/team-switcher";
 import { Sidebar, SidebarContent,  SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import SidebarProfile from "@/components/sidebar/SidebarProfile";
-import SidebarFooterMenu from "./sidebar-footer-menu";
 import SidebarNavigation from "./sidebar-navigation";
-import SidebarProjects from "./sidebar-projects";
 
 const user = {
   name: "shadcn",

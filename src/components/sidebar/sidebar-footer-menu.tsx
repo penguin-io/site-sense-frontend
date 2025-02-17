@@ -21,6 +21,9 @@ interface User {
   avatar: string;
 }
 
+import useAuth from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+
 export default function SidebarFooterMenu({
   user,
 }: {
@@ -28,7 +31,18 @@ export default function SidebarFooterMenu({
 }) {
   const { isMobile } = useSidebar();
 
+  const {logout} = useAuth();
+
+  function handleLogout(){
+    
+    logout()
+    router.push("/auth/login")
+    
+  }
+
   const displayUser = user || { name: "Guest", email: "guest@example.com", avatar: "" };
+
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -91,7 +105,7 @@ export default function SidebarFooterMenu({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>{handleLogout()}}>
               <LogOut />
               Log out
             </DropdownMenuItem>

@@ -1,147 +1,270 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MoreVertical, Plus, Power, PowerOff } from 'lucide-react'; // Import icons
-import { cn } from '@/lib/utils';
+"use client";
 
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import useWorksite from "@/hooks/useWorksite";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReactHlsPlayer from "react-hls-player";
+import { toast } from "react-hot-toast";
+import StreamPlayer from "@/components/player/StreamPlayer";
 
-interface WorksiteDetails {
+// Worksite and Zone Interfaces
+interface Worksite {
+  id: string;
   name: string;
-  active: boolean;
-  activityChart: any; // Replace 'any' with a more specific type if you know the structure
-  location: string;
-  projectName: string;
-  numberOfWorksites: number;
-  zones: string[]; // Assuming zones are an array of strings
+  description: string;
+  created_time: string;
+  project_id: string;
+  lat: number;
+  long: number;
+  status: boolean;
 }
 
-const WorksitePage = ({ params }: { params: { projectworksiteID: string } }) => {
-  const { projectworksiteID } = params;
-  const [worksite, setWorksite] = useState<WorksiteDetails | null>(null);
+interface Zone {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  created_time: string;
+}
+
+export default function WorksitePage() {
+  const { worksiteID } = useParams();
+  const { getWorksiteByID, getWorksiteZones, updateWorksiteStatus, addWorksiteZone } = useWorksite();
+
+  // State management
+  const [worksite, setWorksite] = useState<Worksite | null>(null);
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [activeTab, setActiveTab] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  const [newZone, setNewZone] = useState({
+    name: "",
+    description: "",
+    location: "",
+    feed_uri: "",
+    activity: "inactive",
+    lat: "",
+    long: "",
+  });
+
+  // Dummy HLS feeds (replace later with dynamic data)
+  const feeds = {
+    Feed1: "http://192.168.137.30/v0/1/index.m3u8",
+    Feed2: "http://192.168.137.30/v1/1/index.m3u8",
+    Feed3: "http://192.168.137.30/v2/1/index.m3u8",
+    Feed4: "http://192.168.137.30/v3/1/index.m3u8",
+  };
+
+  // Fetch worksite and zones on load
   useEffect(() => {
-    const fetchWorksiteDetails = async () => {
+    const fetchData = async () => {
       try {
-        // Simulate API call
-        setTimeout(() => {
-          const mockData: WorksiteDetails = {
-            name: "Worksite Alpha",
-            active: true,
-            activityChart: {},
-            location: "New York",
-            projectName: "Project Phoenix",
-            numberOfWorksites: 10,
-            zones: ["Zone A", "Zone B", "Zone C"],
-          };
-          setWorksite(mockData);
-          setLoading(false);
-        }, 500);
-
-        // const response = await fetch(`/api/worksites/${projectworksiteID}`); // Replace with your actual API endpoint
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! Status: ${response.status}`);
-        // }
-        // const data: WorksiteDetails = await response.json();
-        // setWorksite(data);
-      } catch (e: any) {
-        setError(e.message || 'An error occurred while fetching worksite details.');
+        const worksiteData = await getWorksiteByID(worksiteID as string);
+        setWorksite(worksiteData);
+        const zonesData = await getWorksiteZones(worksiteID as string);
+        setZones(zonesData);
+      } catch (error) {
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
     };
+    fetchData();
+  }, [worksiteID]);
 
-    fetchWorksiteDetails();
-  }, [projectworksiteID]);
-
-  if (loading) {
-    return <div>Loading worksite details...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  if (!worksite) {
-    return <div>Worksite not found.</div>;
-  }
-
-  const handleToggleActive = () => {
-    // Implement API call to toggle active status
-    console.log("Toggling Active");
+  // Toggle worksite status
+  const handleStatusToggle = async () => {
+    if (!worksite) return;
+    const updatedStatus = !worksite.status;
+    try {
+      await updateWorksiteStatus(worksite.id, updatedStatus);
+      setWorksite({ ...worksite, status: updatedStatus });
+      toast.success(`Worksite ${updatedStatus ? "activated" : "deactivated"}`);
+    } catch (error) {
+      toast.error("Failed to update status");
+    }
   };
 
+  // Handle form input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewZone({ ...newZone, [name]: value });
+  };
+
+  // Get device location
+  const getDeviceLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setNewZone({
+            ...newZone,
+            lat: position.coords.latitude.toString(),
+            long: position.coords.longitude.toString(),
+          });
+          toast.success("Location fetched successfully!");
+        },
+        (error) => {
+          console.error("Failed to get location:", error);
+          toast.error("Failed to get location.");
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by this browser.");
+    }
+  };
+
+  // Submit new zone
+  const handleAddZone = async () => {
+    if (
+      !newZone.name ||
+      !newZone.description ||
+      !newZone.location ||
+      !newZone.feed_uri ||
+      !newZone.lat ||
+      !newZone.long
+    ) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    try {
+      const zonePayload = {
+        ...newZone,
+        worksite_id: worksite?.id,
+        lat: parseFloat(newZone.lat),
+        long: parseFloat(newZone.long),
+      };
+      const newZoneResponse = await addWorksiteZone(zonePayload);
+      setZones((prev) => [...prev, newZoneResponse]);
+      setNewZone({
+        name: "",
+        description: "",
+        location: "",
+        feed_uri: "",
+        activity: "inactive",
+        lat: "",
+        long: "",
+      });
+      toast.success("New zone added successfully!");
+    } catch (error) {
+      toast.error("Failed to add zone");
+    }
+  };
+
+  // Loading State
+  if (loading) return <div className="text-center text-xl">Loading...</div>;
+
   return (
-    <div className="container mx-auto py-10">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>{worksite.name}</CardTitle>
-          <CardDescription>Project: {worksite.projectName}</CardDescription>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleToggleActive}>
-                {worksite.active ? (
-                  <>
-                    <PowerOff className="mr-2 h-4 w-4" />
-                    Deactivate
-                  </>
-                ) : (
-                  <>
-                    <Power className="mr-2 h-4 w-4" />
-                    Activate
-                  </>
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <div className="max-w-6xl mx-auto py-6 space-y-6">
+      {/* Worksite Details */}
+      <h1 className="text-4xl my-5 font-bold">🏗️ Worksite Details</h1>
+      <Card className="shadow-md border pt-6">
+        <CardContent className="space-y-4">
+          <table className="w-full border-collapse border border-gray-300">
+            <tbody>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">ID</td>
+                <td className="p-3">{worksite?.id}</td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">Name</td>
+                <td className="p-3">{worksite?.name}</td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">Description</td>
+                <td className="p-3">{worksite?.description}</td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">Created</td>
+                <td className="p-3">{new Date(worksite?.created_time || "").toLocaleString()}</td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">Project ID</td>
+                <td className="p-3">{worksite?.project_id}</td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">Location</td>
+                <td className="p-3">Lat: {worksite?.lat}, Long: {worksite?.long}</td>
+              </tr>
+              <tr className="border border-gray-300">
+                <td className="p-3 font-semibold bg-gray-100">Status</td>
+                <td className="p-3 flex items-center gap-2">
+                  <Switch checked={worksite?.status} onCheckedChange={handleStatusToggle} />
+                  <span className={worksite?.status ? "text-green-600" : "text-red-500"}>
+                    {worksite?.status ? "Active" : "Inactive"}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+
+      {/* Zone List */}
+      <Card className="shadow-md border">
+        <CardHeader>
+          <CardTitle>🗺️ Zones</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" value={worksite.location} disabled />
-            </div>
-            <div className="space-y-2">
-              <Label>Number of Worksites</Label>
-              <div>{worksite.numberOfWorksites}</div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">Zones</h3>
-              <ul>
-                {worksite.zones.map((zone, index) => (
-                  <li key={index}>{zone}</li>
+          {zones.length > 0 ? (
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="p-3 text-left">Zone Name</th>
+                  <th className="p-3 text-left">Description</th>
+                  <th className="p-3 text-left">Location</th>
+                  <th className="p-3 text-left">Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {zones.map((zone) => (
+                  <tr key={zone.id} className="border border-gray-300 hover:bg-gray-100">
+                    <td className="p-3">{zone.name}</td>
+                    <td className="p-3">{zone.description}</td>
+                    <td className="p-3">{zone.location}</td>
+                    <td className="p-3">{new Date(zone.created_time).toLocaleString()}</td>
+                  </tr>
                 ))}
-              </ul>
-            </div>
-            <Button variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Zone
-            </Button>
-          </div>
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500">No zones available.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 🔴 ShadCN Tabs for Video Feeds */}
+      <Card className="shadow-md border">
+        <CardHeader>
+          <CardTitle>🎥 Live Video Feeds</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="Feed1">Camera Feed</TabsTrigger>
+              <TabsTrigger value="Feed2">YOLO Feed</TabsTrigger>
+              <TabsTrigger value="Feed3">Body Tracker Feed</TabsTrigger>
+              <TabsTrigger value="Feed4">Digital Twin Feed</TabsTrigger>
+            </TabsList>
+
+            {Object.entries(feeds).map(([key, url]) => (
+              <TabsContent key={key} value={key}>
+                <div className="flex flex-col items-center space-y-4">
+                  <h3 className="text-xl font-semibold">{key}</h3>
+                  <StreamPlayer
+                    streamUrl={url}
+                  />
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default WorksitePage;
+}
